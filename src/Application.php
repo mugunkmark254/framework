@@ -11,13 +11,15 @@ use Taydence\Http\Request;
 final class Application
 {
     private Router $router;
+    private Container $container;
 
     /** @var list<MiddlewareInterface|callable> */
     private array $middleware = [];
 
     public function __construct()
     {
-        $this->router = new Router();
+        $this->container = new Container();
+        $this->router = new Router($this->container);
     }
 
     public function get(string $path, callable|array $handler): void
@@ -33,6 +35,26 @@ final class Application
     public function middleware(MiddlewareInterface|callable $middleware): void
     {
         $this->middleware[] = $middleware;
+    }
+
+    public function bind(string $abstract, callable $factory): void
+    {
+        $this->container->bind($abstract, $factory);
+    }
+
+    public function singleton(string $abstract, callable $factory): void
+    {
+        $this->container->singleton($abstract, $factory);
+    }
+
+    public function instance(string $abstract, mixed $instance): void
+    {
+        $this->container->instance($abstract, $instance);
+    }
+
+    public function make(string $class): mixed
+    {
+        return $this->container->make($class);
     }
 
     public function run(): void
