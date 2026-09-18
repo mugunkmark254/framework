@@ -2,34 +2,47 @@
 
 Taydence Framework is a small PHP framework built from scratch to understand how frameworks such as Laravel work internally.
 
-## v0.3 — Middleware
+## v0.4 — Dependency Injection Container
 
-The framework now supports application-level middleware.
+The framework now includes a small dependency injection container.
 
-Middleware sits between the incoming HTTP request and the router. It can inspect or modify a request, stop the request early, or modify the response returned by the application.
+Instead of the Router directly constructing controllers with `new`, the Container resolves them. It can also automatically resolve class-typed constructor dependencies.
 
 ### Example
 
-Register middleware in the application:
+A controller can declare a dependency:
 
 ```php
-use Taydence\Middleware\PoweredByMiddleware;
-
-$app->middleware(new PoweredByMiddleware());
-```
-
-A middleware can wrap the next step in the request lifecycle:
-
-```php
-public function handle(Request $request, callable $next): Response
+final class UserController
 {
-    return $next($request)->withHeader('X-Powered-By', 'Taydence Framework');
+    public function __construct(private UserService $users)
+    {
+    }
 }
 ```
 
-The resulting flow is:
+The framework can resolve `UserService` automatically when the controller is created.
 
-**HTTP request → Middleware → Router → Controller/Handler → Response → Middleware → HTTP response**
+You can also register your own bindings:
+
+```php
+$app->bind(UserService::class, fn () => new UserService());
+```
+
+For shared instances, use a singleton:
+
+```php
+$app->singleton(Database::class, fn () => new Database());
+```
+
+### Container capabilities
+
+- Resolve concrete classes automatically
+- Resolve class-typed constructor dependencies
+- Register custom bindings
+- Register singleton bindings
+- Register existing instances
+- Resolve controllers through the container
 
 ### Included
 
@@ -44,6 +57,7 @@ The resulting flow is:
 - Immutable response headers
 - Application-level middleware
 - Middleware pipeline
+- Dependency injection container
 - 404 handling
 - PSR-4 autoloading through Composer
 
@@ -73,7 +87,7 @@ The example application registers `PoweredByMiddleware`, so responses include an
 
 ## Architecture
 
-**HTTP request → Application → Middleware Pipeline → Router → Controller/Handler → Response**
+**HTTP request → Application → Middleware Pipeline → Router → Container → Controller/Handler → Response**
 
 ## Roadmap
 
@@ -86,7 +100,7 @@ The example application registers `PoweredByMiddleware`, so responses include an
 - [x] Route parameters
 - [x] Controller handlers
 - [x] Middleware
-- [ ] Dependency container
+- [x] Dependency container
 - [ ] Configuration
 - [ ] Database layer
 - [ ] ORM
