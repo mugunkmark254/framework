@@ -2,6 +2,54 @@
 
 Taydence Framework is a small PHP framework built from scratch to understand how frameworks such as Laravel work internally.
 
+## v0.6 — Environment Variables & `.env`
+
+The framework now supports local environment variables through a `.env` file.
+
+Sensitive or environment-specific values should stay outside the committed source code. The repository includes `.env.example` as a safe template, while `.env` is ignored by Git.
+
+### Example
+
+Copy `.env.example` to `.env` and set local values:
+
+```text
+APP_NAME="Taydence Framework"
+APP_ENV=local
+APP_DEBUG=true
+
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=taydence
+DB_USERNAME=root
+DB_PASSWORD=secret
+```
+
+Read values with:
+
+```php
+env('APP_NAME');
+env('APP_DEBUG', false);
+```
+
+The configuration layer can consume those values:
+
+```php
+return [
+    'name' => env('APP_NAME', 'Taydence Framework'),
+    'env' => env('APP_ENV', 'production'),
+    'debug' => env('APP_DEBUG', false),
+];
+```
+
+### Environment capabilities
+
+- Load `.env` values
+- Ignore blank lines and comments
+- Support quoted values
+- Cast booleans, nulls, integers, and floats
+- Provide defaults
+- Keep `.env` out of Git
+- Provide `.env.example` for project setup
 ## v0.5 — Configuration
 
 The framework now includes a small configuration system loaded from PHP files.
