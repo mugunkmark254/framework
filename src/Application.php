@@ -13,13 +13,16 @@ final class Application
     private Router $router;
     private Container $container;
     private Config $config;
+    private Env $env;
 
     /** @var list<MiddlewareInterface|callable> */
     private array $middleware = [];
 
-    public function __construct(?Config $config = null)
+    public function __construct(?Config $config = null, ?Env $env = null)
     {
         $this->container = new Container();
+        $this->env = $env ?? new Env();
+        $this->container->instance(Env::class, $this->env);
         $this->config = $config ?? new Config();
         $this->container->instance(Config::class, $this->config);
         $this->router = new Router($this->container);
@@ -63,6 +66,11 @@ final class Application
     public function config(string $key, mixed $default = null): mixed
     {
         return $this->config->get($key, $default);
+    }
+
+    public function env(string $key, mixed $default = null): mixed
+    {
+        return $this->env->get($key, $default);
     }
 
     public function run(): void
