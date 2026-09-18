@@ -8,8 +8,11 @@ use Taydence\Application;
 use Taydence\Controllers\HomeController;
 use Taydence\Http\Request;
 use Taydence\Http\Response;
+use Taydence\Middleware\PoweredByMiddleware;
 
 $app = new Application();
+
+$app->middleware(new PoweredByMiddleware());
 
 $app->get('/', [HomeController::class, 'index']);
 $app->get('/about', fn () => 'A tiny PHP framework built from scratch.');
