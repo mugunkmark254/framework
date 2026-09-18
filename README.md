@@ -2,6 +2,47 @@
 
 Taydence Framework is a small PHP framework built from scratch to understand how frameworks such as Laravel work internally.
 
+## v0.5 — Configuration
+
+The framework now includes a small configuration system loaded from PHP files.
+
+### Example
+
+Create a configuration file:
+
+```php
+return [
+    'name' => 'Taydence Framework',
+    'env' => 'local',
+    'debug' => true,
+];
+```
+
+Load it when creating the application:
+
+```php
+$config = Config::fromFile(__DIR__ . '/../config/app.php');
+$app = new Application($config);
+```
+
+Read values through the application:
+
+```php
+$app->config('name');
+$app->config('debug', false);
+```
+
+Nested configuration is supported with dot notation, such as `database.host`.
+
+### Configuration capabilities
+
+- Load configuration from PHP files
+- Read nested values with dot notation
+- Provide default values
+- Check whether a key exists
+- Access the complete configuration array
+- Inject `Config` through the dependency container
+
 ## v0.4 — Dependency Injection Container
 
 The framework now includes a small dependency injection container.
@@ -101,7 +142,7 @@ The example application registers `PoweredByMiddleware`, so responses include an
 - [x] Controller handlers
 - [x] Middleware
 - [x] Dependency container
-- [ ] Configuration
+- [x] Configuration
 - [ ] Database layer
 - [ ] ORM
 - [ ] Validation
