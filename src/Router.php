@@ -9,8 +9,15 @@ use Taydence\Http\Response;
 
 final class Router
 {
-    /** @var array<string, array<int, array{path: string, regex: string, handler: callable}>> */
+    private Container $container;
+
+    /** @var array<string, array<int, array{path: string, regex: string, handler: callable|array}>> */
     private array $routes = [];
+
+    public function __construct(?Container $container = null)
+    {
+        $this->container = $container ?? new Container();
+    }
 
     public function get(string $path, callable|array $handler): void
     {
@@ -58,7 +65,7 @@ final class Router
     {
         if (is_array($handler)) {
             [$controller, $method] = $handler;
-            $handler = [new $controller(), $method];
+            $handler = [$this->container->make($controller), $method];
         }
 
         return $handler($request, ...array_values($parameters));
