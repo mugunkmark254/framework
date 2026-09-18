@@ -21,6 +21,15 @@ final class Response
         );
     }
 
+    public function withHeader(string $name, string $value): self
+    {
+        return new self(
+            $this->content,
+            $this->status,
+            [...$this->headers, $name => $value]
+        );
+    }
+
     public function send(): void
     {
         http_response_code($this->status);
