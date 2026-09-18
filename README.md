@@ -2,20 +2,33 @@
 
 Taydence Framework is a small PHP framework built from scratch to understand how frameworks such as Laravel work internally.
 
-## v0.1
+## v0.2 — Route Parameters & Controllers
 
-The first version provides a minimal HTTP request lifecycle:
+The framework now supports dynamic route parameters and controller handlers.
 
-**HTTP request → Application → Router → Request → Handler → Response**
+### Example
+
+```php
+use Taydence\Controllers\HomeController;
+
+$app->get('/', [HomeController::class, 'index']);
+$app->get('/users/{id}', fn (Request $request, string $id) => Response::json([
+    'id' => $id,
+]));
+```
+
+A request to `/users/42` passes `42` into the route handler.
 
 ### Included
 
 - Application kernel
-- GET routes
-- POST routes
+- GET and POST routes
+- Dynamic route parameters
+- Controller handlers
 - Request object
 - Query-string and POST input
 - Response object
+- JSON responses
 - 404 handling
 - PSR-4 autoloading through Composer
 
@@ -38,16 +51,12 @@ Try:
 - `/`
 - `/about`
 - `/hello?name=Mark`
+- `/hello/Mark`
+- `/users/42`
 
-## Example
+## Architecture
 
-```php
-use Taydence\Http\Request;
-
-$app->get('/students', function (Request $request) {
-    return 'Students';
-});
-```
+**HTTP request → Application → Router → Controller/Handler → Response**
 
 ## Roadmap
 
@@ -56,10 +65,10 @@ $app->get('/students', function (Request $request) {
 - [x] POST routes
 - [x] Request object
 - [x] Response object
-- [x] 404 handling
-- [ ] Route parameters
+- [x] JSON responses
+- [x] Route parameters
+- [x] Controller handlers
 - [ ] Middleware
-- [ ] Controllers
 - [ ] Dependency container
 - [ ] Configuration
 - [ ] Database layer
