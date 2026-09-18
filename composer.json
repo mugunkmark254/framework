@@ -1,0 +1,22 @@
+{
+  "name": "mugunkmark254/framework",
+  "description": "A small PHP web framework built from scratch for learning and experimentation.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Taydence\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Taydence\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "serve": "php -S localhost:8000 -t public"
+  }
+}
