@@ -5,12 +5,14 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Taydence\Application;
+use Taydence\Config;
 use Taydence\Controllers\HomeController;
 use Taydence\Http\Request;
 use Taydence\Http\Response;
 use Taydence\Middleware\PoweredByMiddleware;
 
-$app = new Application();
+$config = Config::fromFile(dirname(__DIR__) . '/config/app.php');
+$app = new Application($config);
 
 $app->middleware(new PoweredByMiddleware());
 
