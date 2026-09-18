@@ -2,22 +2,34 @@
 
 Taydence Framework is a small PHP framework built from scratch to understand how frameworks such as Laravel work internally.
 
-## v0.2 — Route Parameters & Controllers
+## v0.3 — Middleware
 
-The framework now supports dynamic route parameters and controller handlers.
+The framework now supports application-level middleware.
+
+Middleware sits between the incoming HTTP request and the router. It can inspect or modify a request, stop the request early, or modify the response returned by the application.
 
 ### Example
 
-```php
-use Taydence\Controllers\HomeController;
+Register middleware in the application:
 
-$app->get('/', [HomeController::class, 'index']);
-$app->get('/users/{id}', fn (Request $request, string $id) => Response::json([
-    'id' => $id,
-]));
+```php
+use Taydence\Middleware\PoweredByMiddleware;
+
+$app->middleware(new PoweredByMiddleware());
 ```
 
-A request to `/users/42` passes `42` into the route handler.
+A middleware can wrap the next step in the request lifecycle:
+
+```php
+public function handle(Request $request, callable $next): Response
+{
+    return $next($request)->withHeader('X-Powered-By', 'Taydence Framework');
+}
+```
+
+The resulting flow is:
+
+**HTTP request → Middleware → Router → Controller/Handler → Response → Middleware → HTTP response**
 
 ### Included
 
@@ -29,6 +41,9 @@ A request to `/users/42` passes `42` into the route handler.
 - Query-string and POST input
 - Response object
 - JSON responses
+- Immutable response headers
+- Application-level middleware
+- Middleware pipeline
 - 404 handling
 - PSR-4 autoloading through Composer
 
@@ -54,9 +69,11 @@ Try:
 - `/hello/Mark`
 - `/users/42`
 
+The example application registers `PoweredByMiddleware`, so responses include an `X-Powered-By: Taydence Framework` header.
+
 ## Architecture
 
-**HTTP request → Application → Router → Controller/Handler → Response**
+**HTTP request → Application → Middleware Pipeline → Router → Controller/Handler → Response**
 
 ## Roadmap
 
@@ -68,7 +85,7 @@ Try:
 - [x] JSON responses
 - [x] Route parameters
 - [x] Controller handlers
-- [ ] Middleware
+- [x] Middleware
 - [ ] Dependency container
 - [ ] Configuration
 - [ ] Database layer
