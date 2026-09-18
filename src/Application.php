@@ -12,13 +12,16 @@ final class Application
 {
     private Router $router;
     private Container $container;
+    private Config $config;
 
     /** @var list<MiddlewareInterface|callable> */
     private array $middleware = [];
 
-    public function __construct()
+    public function __construct(?Config $config = null)
     {
         $this->container = new Container();
+        $this->config = $config ?? new Config();
+        $this->container->instance(Config::class, $this->config);
         $this->router = new Router($this->container);
     }
 
@@ -55,6 +58,11 @@ final class Application
     public function make(string $class): mixed
     {
         return $this->container->make($class);
+    }
+
+    public function config(string $key, mixed $default = null): mixed
+    {
+        return $this->config->get($key, $default);
     }
 
     public function run(): void
