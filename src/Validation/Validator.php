@@ -85,7 +85,7 @@ final class Validator
 
     private function checkMax(string $field, mixed $value, float $max): void
     {
-        $size = is_string($value) ? mb_strlen($value) : (float) $value;
+        $size = is_string($value) ? strlen($value) : (float) $value;
 
         if ($size > $max) {
             $this->add($field, "The field may not be greater than {$max}.");
