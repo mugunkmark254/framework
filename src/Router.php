@@ -38,6 +38,11 @@ final class Router
         ];
     }
 
+    public function routes(): array
+    {
+        return $this->routes;
+    }
+
     public function dispatch(Request $request): Response
     {
         foreach ($this->routes[$request->method()] ?? [] as $route) {
