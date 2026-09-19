@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Taydence;
 
+use Taydence\Database\Connection;
+use Taydence\Database\Database;
 use Taydence\Http\MiddlewareInterface;
 use Taydence\Http\MiddlewarePipeline;
 use Taydence\Http\Request;
@@ -25,6 +27,10 @@ final class Application
         $this->container->instance(Env::class, $this->env);
         $this->config = $config ?? new Config();
         $this->container->instance(Config::class, $this->config);
+        $this->container->singleton(Database::class, function (Container $container): Database {
+            $config = $container->make(Config::class);
+            return new Database(new Connection($config->get('database', [])));
+        });
         $this->router = new Router($this->container);
     }
 
