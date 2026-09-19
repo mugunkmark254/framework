@@ -86,6 +86,16 @@ final class Application
         return $this->env->get($key, $default);
     }
 
+    public function validate(array $data, array $rules): array
+    {
+        return (new \Taydence\Validation\Validator($data))->validate($rules);
+    }
+
+    public function auth(): \Taydence\Auth\Authenticator
+    {
+        return $this->container->make(\Taydence\Auth\Authenticator::class);
+    }
+
     public function handle(Request $request): \Taydence\Http\Response
     {
         try {
