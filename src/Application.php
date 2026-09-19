@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Taydence;
 
+use Taydence\Auth\Authenticator;
 use Taydence\Database\Connection;
 use Taydence\Database\Database;
 use Taydence\Http\MiddlewareInterface;
@@ -33,6 +34,11 @@ final class Application
             return new Database(new Connection($config->get('database', [])));
         });
         $this->router = new Router($this->container);
+        $this->container->singleton(Authenticator::class, fn (Container $container): Authenticator => new Authenticator(
+            $container->make(Database::class),
+            $this->config->get('auth.table', 'users'),
+            $this->config->get('auth.identifier', 'email')
+        ));
     }
 
     public function get(string $path, callable|array $handler): void
@@ -80,19 +86,21 @@ final class Application
         return $this->env->get($key, $default);
     }
 
-    public function run(): void
+    public function handle(Request $request): \Taydence\Http\Response
     {
-        $request = Request::capture();
-
         try {
-            $response = (new MiddlewarePipeline($this->middleware))->handle(
+            return (new MiddlewarePipeline($this->middleware))->handle(
                 $request,
                 fn (Request $request) => $this->router->dispatch($request)
             );
-        } catch (\\Throwable $exception) {
-            $response = (new ErrorHandler((bool) $this->config('debug', false)))->render($exception, $request);
+        } catch (\Throwable $exception) {
+            return (new ErrorHandler((bool) $this->config('debug', false)))->render($exception, $request);
         }
+    }
 
-        $response->send();
+    public function run(): void
+    {
+        $request = Request::capture();
+        $this->handle($request)->send();
     }
 }
