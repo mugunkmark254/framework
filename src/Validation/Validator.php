@@ -76,7 +76,7 @@ final class Validator
 
     private function checkMin(string $field, mixed $value, float $min): void
     {
-        $size = is_string($value) ? mb_strlen($value) : (float) $value;
+        $size = is_string($value) ? strlen($value) : (float) $value;
 
         if ($size < $min) {
             $this->add($field, "The field must be at least {$min}.");
