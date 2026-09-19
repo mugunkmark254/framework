@@ -6,6 +6,10 @@ return [
     'name' => env('APP_NAME', 'Taydence Framework'),
     'env' => env('APP_ENV', 'production'),
     'debug' => env('APP_DEBUG', false),
+    'auth' => [
+        'table' => env('AUTH_TABLE', 'users'),
+        'identifier' => env('AUTH_IDENTIFIER', 'email'),
+    ],
     'database' => [
         'driver' => env('DB_CONNECTION', 'mysql'),
         'host' => env('DB_HOST', 'localhost'),
