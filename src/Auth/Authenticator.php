@@ -29,6 +29,7 @@ final class Authenticator
         }
 
         $this->user = $user;
+        session_regenerate_id(true);
         $_SESSION['taydence_user_id'] = $user['id'] ?? null;
 
         return true;
