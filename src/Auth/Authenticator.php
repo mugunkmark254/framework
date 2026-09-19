@@ -18,6 +18,7 @@ final class Authenticator
 
     public function attempt(string $identifier, string $password): bool
     {
+        $this->startSession();
         $user = $this->database->table($this->table)
             ->where($this->identifier, '=', $identifier)
             ->first();
@@ -40,6 +41,8 @@ final class Authenticator
 
     public function user(): ?array
     {
+        $this->startSession();
+
         if ($this->user !== null) {
             return $this->user;
         }
@@ -57,8 +60,16 @@ final class Authenticator
 
     public function logout(): void
     {
+        $this->startSession();
         $this->user = null;
         unset($_SESSION['taydence_user_id']);
+    }
+
+    private function startSession(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
     }
 
     public static function hashPassword(string $password): string
