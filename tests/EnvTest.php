@@ -12,7 +12,10 @@ final class EnvTest extends TestCase
     public function testEnvironmentValuesAreLoadedAndCast(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'taydence-env-');
-        file_put_contents($path, "APP_NAME="Taydence Framework"\nAPP_DEBUG=true\nPORT=3306\nEMPTY=null\n");
+        file_put_contents(
+            $path,
+            "APP_NAME=\"Taydence Framework\"\nAPP_DEBUG=true\nPORT=3306\nEMPTY=null\n"
+        );
 
         try {
             $env = Env::fromFile($path);
