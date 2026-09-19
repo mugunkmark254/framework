@@ -44,5 +44,14 @@ final class Request
     {
         return $key === null ? $this->body : ($this->body[$key] ?? null);
     }
+
+    public function expectsJson(): bool
+    {
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
+        return str_contains($accept, 'application/json')
+            || str_contains($contentType, 'application/json');
+    }
 }
 
