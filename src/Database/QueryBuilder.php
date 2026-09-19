@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Taydence\Database;
 
+use InvalidArgumentException;
 use PDO;
 
 final class QueryBuilder
@@ -23,11 +24,20 @@ final class QueryBuilder
     public function select(string ...$columns): self
     {
         $this->columns = $columns ?: ['*'];
+        foreach ($this->columns as $column) {
+            if ($column !== '*' && !$this->isIdentifier($column)) {
+                throw new InvalidArgumentException('Invalid column name.');
+            }
+        }
         return $this;
     }
 
     public function where(string $column, string $operator, mixed $value): self
     {
+        if (!$this->isIdentifier($column) || !in_array(strtoupper($operator), ['=', '!=', '<>', '<', '<=', '>', '>=', 'LIKE'], true)) {
+            throw new InvalidArgumentException('Invalid WHERE clause.');
+        }
+
         $placeholder = ':w' . count($this->bindings);
         $this->wheres[] = "{$column} {$operator} {$placeholder}";
         $this->bindings[$placeholder] = $value;
@@ -37,6 +47,10 @@ final class QueryBuilder
     public function orderBy(string $column, string $direction = 'asc'): self
     {
         $direction = strtolower($direction) === 'desc' ? 'DESC' : 'ASC';
+        if (!$this->isIdentifier($column)) {
+            throw new InvalidArgumentException('Invalid order column.');
+        }
+
         $this->orders[] = "{$column} {$direction}";
         return $this;
     }
@@ -71,6 +85,11 @@ final class QueryBuilder
     public function insert(array $data): int
     {
         $columns = array_keys($data);
+        foreach ($columns as $column) {
+            if (!$this->isIdentifier($column)) {
+                throw new InvalidArgumentException('Invalid column name.');
+            }
+        }
         $placeholders = array_map(
             static fn (string $column) => ':' . $column,
             $columns
@@ -95,6 +114,9 @@ final class QueryBuilder
         $bindings = $this->bindings;
 
         foreach ($data as $column => $value) {
+            if (!$this->isIdentifier($column)) {
+                throw new InvalidArgumentException('Invalid column name.');
+            }
             $placeholder = ':set_' . $column;
             $sets[] = "{$column} = {$placeholder}";
             $bindings[$placeholder] = $value;
@@ -133,6 +155,11 @@ final class QueryBuilder
         }
 
         return [$sql, $this->bindings];
+    }
+
+    private function isIdentifier(string $value): bool
+    {
+        return preg_match('/^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?$/', $value) === 1;
     }
 
     private function whereSql(): string
