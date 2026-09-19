@@ -45,3 +45,4 @@ final class Request
         return $key === null ? $this->body : ($this->body[$key] ?? null);
     }
 }
+
