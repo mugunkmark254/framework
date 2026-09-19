@@ -75,6 +75,19 @@ final class Router
     {
         $path = $this->normalize($path);
 
+        $parts = array_filter(explode('/', trim($path, '/')), static fn (string $part) => $part !== '');
+        $compiled = [];
+
+        foreach ($parts as $part) {
+            if (preg_match('/^\{([A-Za-z_][A-Za-z0-9_]*)\}$/', $part, $match) === 1) {
+                $compiled[] = '(?P<' . $match[1] . '>[^/]+)';
+            } else {
+                $compiled[] = preg_quote($part, '#');
+            }
+        }
+
+        $pattern = $compiled === [] ? '/' : '/' . implode('/', $compiled);
+
         $pattern = preg_replace_callback(
             '/\{([A-Za-z_][A-Za-z0-9_]*)\}/',
             static fn (array $match) => '(?P<' . $match[1] . '>[^/]+)',
