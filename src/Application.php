@@ -8,6 +8,7 @@ use Taydence\Database\Connection;
 use Taydence\Database\Database;
 use Taydence\Http\MiddlewareInterface;
 use Taydence\Http\MiddlewarePipeline;
+use Taydence\Http\ErrorHandler;
 use Taydence\Http\Request;
 
 final class Application
@@ -83,10 +84,14 @@ final class Application
     {
         $request = Request::capture();
 
-        $response = (new MiddlewarePipeline($this->middleware))->handle(
-            $request,
-            fn (Request $request) => $this->router->dispatch($request)
-        );
+        try {
+            $response = (new MiddlewarePipeline($this->middleware))->handle(
+                $request,
+                fn (Request $request) => $this->router->dispatch($request)
+            );
+        } catch (\\Throwable $exception) {
+            $response = (new ErrorHandler((bool) $this->config('debug', false)))->render($exception, $request);
+        }
 
         $response->send();
     }
