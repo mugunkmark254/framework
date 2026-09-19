@@ -10,7 +10,7 @@ final class HomeController
 {
     public function index(): Response
     {
-        return new Response('Welcome to Taydence Framework v0.4');
+        return new Response('Welcome to Taydence Framework v1.0');
     }
 
     public function hello(): Response
