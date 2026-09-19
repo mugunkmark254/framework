@@ -19,7 +19,11 @@ final class QueryBuilder
     public function __construct(
         private readonly PDO $pdo,
         private readonly string $table
-    ) {}
+    ) {
+        if (!$this->isIdentifier($this->table)) {
+            throw new InvalidArgumentException('Invalid table name.');
+        }
+    }
 
     public function select(string ...$columns): self
     {
