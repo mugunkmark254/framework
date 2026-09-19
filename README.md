@@ -1,27 +1,71 @@
 # Taydence Framework
 
-Taydence Framework is a small PHP framework built from scratch to understand how frameworks such as Laravel work internally.
+Taydence Framework is a small PHP web framework built from scratch to understand how frameworks such as Laravel work internally.
 
-## v0.6 — Environment Variables & `.env`
+It is a learning and experimentation project, not a replacement for Laravel.
 
-The framework now supports local environment variables through a `.env` file.
+## Current milestone: v1.0
 
-Sensitive or environment-specific values should stay outside the committed source code. The repository includes `.env.example` as a safe template, while `.env` is ignored by Git.
+The framework has progressed from raw HTTP handling to a small, coherent application stack:
 
-### Example
+**Request → Middleware → Router → Container → Controller → Validation/Database → Response**
 
-Copy `.env.example` to `.env` and set local values:
+### Included
+
+- HTTP request and response objects
+- GET and POST routing
+- Dynamic route parameters
+- Controller resolution through dependency injection
+- Application middleware and middleware pipelines
+- Configuration with nested dot notation
+- .env environment variables
+- PDO database connections
+- Database transactions
+- Parameterized query builder
+- Active Record-style model foundation
+- Validation rules
+- Central exception handling
+- Password hashing and session authentication
+- Authentication middleware
+- CLI code generators
+- PHPUnit tests
+- GitHub Actions CI for PHP 8.2, 8.3 and 8.4
+
+## Requirements
+
+- PHP 8.2+
+- Composer
+- PDO for the database driver you use
+
+## Quick start
+
+```bash
+composer install
+cp .env.example .env
+php -S localhost:8000 -t public
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+## Environment
+
+.env is intentionally ignored by Git.
 
 ```text
 APP_NAME="Taydence Framework"
 APP_ENV=local
 APP_DEBUG=true
 
+DB_CONNECTION=sqlite
 DB_HOST=localhost
 DB_PORT=3306
 DB_DATABASE=taydence
-DB_USERNAME=root
-DB_PASSWORD=secret
+DB_USERNAME=
+DB_PASSWORD=
 ```
 
 Read values with:
@@ -31,174 +75,182 @@ env('APP_NAME');
 env('APP_DEBUG', false);
 ```
 
-The configuration layer can consume those values:
+## Database
+
+The container exposes the database service:
 
 ```php
-return [
-    'name' => env('APP_NAME', 'Taydence Framework'),
-    'env' => env('APP_ENV', 'production'),
-    'debug' => env('APP_DEBUG', false),
-];
+use Taydence\Database\Database;
+
+$database = $app->make(Database::class);
 ```
 
-### Environment capabilities
-
-- Load `.env` values
-- Ignore blank lines and comments
-- Support quoted values
-- Cast booleans, nulls, integers, and floats
-- Provide defaults
-- Keep `.env` out of Git
-- Provide `.env.example` for project setup
-## v0.5 — Configuration
-
-The framework now includes a small configuration system loaded from PHP files.
-
-### Example
-
-Create a configuration file:
+Use the query builder:
 
 ```php
-return [
-    'name' => 'Taydence Framework',
-    'env' => 'local',
-    'debug' => true,
-];
+$users = $database->table('users')
+    ->where('active', '=', 1)
+    ->orderBy('name')
+    ->limit(20)
+    ->get();
 ```
 
-Load it when creating the application:
+Transactions are supported:
 
 ```php
-$config = Config::fromFile(__DIR__ . '/../config/app.php');
-$app = new Application($config);
+$database->transaction(function (Database $database) {
+    // multiple database operations
+});
 ```
 
-Read values through the application:
+Values are parameterized and SQL identifiers are validated.
+
+## Models
 
 ```php
-$app->config('name');
-$app->config('debug', false);
-```
+use Taydence\Database\Model;
 
-Nested configuration is supported with dot notation, such as `database.host`.
-
-### Configuration capabilities
-
-- Load configuration from PHP files
-- Read nested values with dot notation
-- Provide default values
-- Check whether a key exists
-- Access the complete configuration array
-- Inject `Config` through the dependency container
-
-## v0.4 — Dependency Injection Container
-
-The framework now includes a small dependency injection container.
-
-Instead of the Router directly constructing controllers with `new`, the Container resolves them. It can also automatically resolve class-typed constructor dependencies.
-
-### Example
-
-A controller can declare a dependency:
-
-```php
-final class UserController
+final class User extends Model
 {
-    public function __construct(private UserService $users)
-    {
-    }
+    protected string $table = 'users';
+
+    protected array $fillable = [
+        'name',
+        'email',
+    ];
 }
 ```
 
-The framework can resolve `UserService` automatically when the controller is created.
-
-You can also register your own bindings:
+Create and persist a model:
 
 ```php
-$app->bind(UserService::class, fn () => new UserService());
+$user = User::createWith($database, [
+    'name' => 'Mark',
+    'email' => 'mark@example.com',
+]);
 ```
 
-For shared instances, use a singleton:
+This is intentionally a small Active Record foundation rather than a full ORM.
+
+## Validation
 
 ```php
-$app->singleton(Database::class, fn () => new Database());
+$validated = $app->validate($request->input(), [
+    'name' => 'required|string|min:3|max:100',
+    'email' => 'required|email',
+    'age' => 'nullable|integer|min:18',
+]);
 ```
 
-### Container capabilities
+Current rules include required, nullable, string, integer, numeric, email, min, max and in.
 
-- Resolve concrete classes automatically
-- Resolve class-typed constructor dependencies
-- Register custom bindings
-- Register singleton bindings
-- Register existing instances
-- Resolve controllers through the container
+Validation failures produce HTTP 422 responses.
 
-### Included
+## Authentication
 
-- Application kernel
-- GET and POST routes
-- Dynamic route parameters
-- Controller handlers
-- Request object
-- Query-string and POST input
-- Response object
-- JSON responses
-- Immutable response headers
-- Application-level middleware
-- Middleware pipeline
-- Dependency injection container
-- 404 handling
-- PSR-4 autoloading through Composer
+```php
+$auth = $app->auth();
 
-## Requirements
+if ($auth->attempt($request->input('email'), $request->input('password'))) {
+    // authenticated
+}
+```
 
-- PHP 8.2+
-- Composer
+Password hashing:
 
-## Quick start
+```php
+Authenticator::hashPassword($password);
+```
+
+Protect routes with AuthMiddleware.
+
+Authentication is deliberately minimal in v1.0. Production applications still need features such as CSRF protection, password reset, rate limiting and stronger session policies.
+
+## CLI
 
 ```bash
-composer install
-php -S localhost:8000 -t public
+php bin/taydence help
+php bin/taydence make:controller UserController
+php bin/taydence make:model User
 ```
 
-Visit http://localhost:8000/
+## Testing
 
-Try:
+```bash
+composer test
+composer lint
+```
 
-- `/`
-- `/about`
-- `/hello?name=Mark`
-- `/hello/Mark`
-- `/users/42`
+GitHub Actions runs tests and syntax checks across PHP 8.2, 8.3 and 8.4.
 
-The example application registers `PoweredByMiddleware`, so responses include an `X-Powered-By: Taydence Framework` header.
+## Example routes
+
+- /
+- /about
+- /hello?name=Mark
+- /hello/Mark
+- /users/42
 
 ## Architecture
 
-**HTTP request → Application → Middleware Pipeline → Router → Container → Controller/Handler → Response**
+```text
+HTTP Request
+     ↓
+Application
+     ↓
+Middleware Pipeline
+     ↓
+Router
+     ↓
+Container
+ ┌───┴───────────────┐
+Controller       Database
+                    ↓
+              Query Builder
+                    ↓
+                  Model
+     ↓
+Validation / Errors
+     ↓
+HTTP Response
+```
 
 ## Roadmap
 
-- [x] Application kernel
-- [x] GET routes
-- [x] POST routes
-- [x] Request object
-- [x] Response object
-- [x] JSON responses
-- [x] Route parameters
-- [x] Controller handlers
-- [x] Middleware
-- [x] Dependency container
-- [x] Configuration
-- [ ] Database layer
-- [ ] ORM
-- [ ] Validation
-- [ ] Authentication
-- [ ] CLI tooling
-- [ ] Testing utilities
+### Completed
 
-The goal is learning and experimentation, not replacing Laravel.
+- [x] HTTP foundation
+- [x] Routing
+- [x] Route parameters
+- [x] Controllers
+- [x] Middleware
+- [x] Dependency injection
+- [x] Configuration
+- [x] Environment variables
+- [x] Database connection
+- [x] Query builder
+- [x] Model foundation
+- [x] Validation
+- [x] Error handling
+- [x] Authentication foundation
+- [x] CLI generators
+- [x] Testing utilities
+- [x] CI
+
+### Future beyond v1.0
+
+- Full ORM relationships and eager loading
+- Database migrations and schema builder
+- CSRF protection
+- Advanced authentication and authorization
+- Sessions abstraction
+- Queues and jobs
+- Event system
+- Caching
+- Production-grade CLI
+- Package ecosystem
+
+The goal remains to understand framework internals by building them from first principles.
 
 ## License
 
